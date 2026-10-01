@@ -12,10 +12,15 @@ const settingOutputs = {
   release: document.querySelector('#release-value'),
 };
 
+const gameSettings = window.PROJECTION_BALLS_SETTINGS;
 const palette = [
   { light: '#8cceff', base: '#4b9ee5', dark: '#285387', outline: '#153b68' },
 ];
-const settings = { radius: .125, connectGap: .065, releaseGap: .271 };
+const settings = {
+  radius: gameSettings.radius,
+  connectGap: gameSettings.connectGap,
+  releaseGap: gameSettings.releaseGap,
+};
 
 // This layout admits an eight-ball path with the original attachment threshold.
 // Persistent glue adds history to the connections as the cube is turned.
@@ -122,7 +127,7 @@ function project(position, scale) {
 function draw(now = performance.now()) {
   ctx.clearRect(0, 0, width, height);
   const scale = Math.min(width * .36, height * .34, 240);
-  const cubeScale = scale * .85;
+  const cubeScale = scale * gameSettings.cubeScale;
   const projectedCorners = corners.map(corner => project(corner, cubeScale));
   const projectedBalls = balls.map((ball, index) => ({
     ...project(ball.position, cubeScale), index, colorIndex: ball.colorIndex,
