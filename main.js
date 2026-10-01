@@ -158,11 +158,24 @@ function draw(now = performance.now()) {
   // Detect changes using the resting radii. Visual spring motion must never
   // create or break a logical connection by itself.
   const impulses = new Map();
+  let connectedThisFrame = false;
+  let disconnectedThisFrame = false;
   for (const key of new Set([...previousConnections, ...connectionKeys])) {
     const before = previousConnections.has(key), after = connectionKeys.has(key);
     if (before === after) continue;
+    if (after) connectedThisFrame = true;
+    else disconnectedThisFrame = true;
     for (const index of key.split(':').map(Number)) {
       impulses.set(index, (impulses.get(index) || 0) + (after ? 1 : -1));
+    }
+  }
+  if (connectedThisFrame || disconnectedThisFrame) {
+    try {
+      if (typeof navigator.vibrate === 'function') {
+        navigator.vibrate(connectedThisFrame ? 12 : 7);
+      }
+    } catch {
+      // Haptic feedback is optional; unsupported devices keep the visual pulse.
     }
   }
   for (const [index, impulse] of impulses) {
