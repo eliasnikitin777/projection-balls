@@ -1,6 +1,5 @@
 const canvas = document.querySelector('#scene');
 const ctx = canvas.getContext('2d');
-const score = document.querySelector('#score');
 const contourCanvas = document.createElement('canvas');
 const contour = contourCanvas.getContext('2d');
 const settingsWindow = document.querySelector('#settings-backdrop');
@@ -199,7 +198,6 @@ function draw(now = performance.now()) {
   }
   const chain = longestChain(adjacency);
   record = Math.max(record, chain);
-  score.textContent = `Цепочка: ${chain} · рекорд: ${record}`;
 
   // Rear edges are faint; front edges remain legible over the balls.
   for (const front of [false, true]) {
