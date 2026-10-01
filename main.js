@@ -14,7 +14,6 @@ const settingOutputs = {
 
 const palette = [
   { light: '#8cceff', base: '#4b9ee5', dark: '#285387', outline: '#153b68' },
-  { light: '#ffc0df', base: '#ef70ad', dark: '#98436d', outline: '#6f294c' },
 ];
 const settings = { radius: .125, connectGap: .065, releaseGap: .271 };
 
@@ -27,22 +26,15 @@ const layout = [
   [.8644, -.1971, .4314], [-.2558, .5943, -.1563],
   [.2203, -.048, .8728],
 ];
-const pinkLayout = [
-  [-.4937, -.3721, .3407], [-.8639, -.087, -.0608],
-  [.3788, -.8405, -.0602], [-.1271, -.468, -.4955],
-];
 const levelStart = { yaw: -2.3038346126, pitch: .5759586532 };
 // Pink solution: yaw -1.3264502315, pitch -.5585053606.
 // At default settings all three neighboring gaps are .05: attach at .065,
 // release at .271. The four balls form one unbranched path.
 
 function createLevelBalls() {
-  const layoutExtent = Math.max(...[...layout, ...pinkLayout].flat().map(Math.abs));
+  const layoutExtent = Math.max(...layout.flat().map(Math.abs));
   const fit = Math.min(1, (1 - settings.radius) / layoutExtent);
-  return [
-    ...layout.map(point => ({ position: point, colorIndex: 0 })),
-    ...pinkLayout.map(point => ({ position: point, colorIndex: 1 })),
-  ].map(ball => ({
+  return layout.map(point => ({ position: point, colorIndex: 0 })).map(ball => ({
     ...ball,
     position: ball.position.map(value => value * fit),
   }));
