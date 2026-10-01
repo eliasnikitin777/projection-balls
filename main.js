@@ -1,7 +1,5 @@
 const canvas = document.querySelector('#scene');
 const ctx = canvas.getContext('2d');
-const contourCanvas = document.createElement('canvas');
-const contour = contourCanvas.getContext('2d');
 const settingsWindow = document.querySelector('#settings-backdrop');
 const settingControls = {
   radius: document.querySelector('#size-slider'),
@@ -61,7 +59,6 @@ for (let a = 0; a < corners.length; a++) for (let b = a + 1; b < corners.length;
 
 let width = 0, height = 0, dpr = 1;
 let dragging = false, lastX = 0, lastY = 0;
-let record = 0;
 let previousConnections = new Set();
 let pulses = balls.map(() => []);
 let animationFrame = null;
@@ -93,30 +90,13 @@ function axisRotation(axis, angle) {
 
 let orientation = [0, 0, 0, 1];
 
-function longestChain(adjacency) {
-  let longest = 0;
-  function walk(last, visited, length) {
-    longest = Math.max(longest, length);
-    for (const next of adjacency[last]) {
-      if (!(visited & (1 << next))) walk(next, visited | (1 << next), length + 1);
-    }
-  }
-  for (let i = 0; i < adjacency.length; i++) {
-    if (adjacency[i].length) walk(i, 1 << i, 1);
-  }
-  return longest;
-}
-
 function resize() {
   width = innerWidth;
   height = innerHeight;
   dpr = Math.min(devicePixelRatio || 1, 2);
   canvas.width = Math.round(width * dpr);
   canvas.height = Math.round(height * dpr);
-  contourCanvas.width = canvas.width;
-  contourCanvas.height = canvas.height;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  contour.setTransform(dpr, 0, 0, dpr, 0, 0);
   draw();
 }
 
@@ -156,7 +136,6 @@ function draw(now = performance.now()) {
     radius: scale * settings.radius, baseRadius: scale * settings.radius,
     active: false,
   }));
-  const adjacency = balls.map(() => []);
   const connections = [];
   const connectionKeys = new Set();
 
@@ -172,8 +151,6 @@ function draw(now = performance.now()) {
     const threshold = previousConnections.has(key) ? releaseGapLimit : gapLimit;
     if (gap <= threshold) {
       a.active = b.active = true;
-      adjacency[i].push(j);
-      adjacency[j].push(i);
       connections.push([a, b]);
       connectionKeys.add(key);
     }
@@ -196,9 +173,6 @@ function draw(now = performance.now()) {
     ball.pulse = pulseAt(ball.index, now);
     ball.radius = ball.baseRadius * (1 + ball.pulse);
   }
-  const chain = longestChain(adjacency);
-  record = Math.max(record, chain);
-
   // Rear edges are faint; front edges remain legible over the balls.
   for (const front of [false, true]) {
     ctx.lineWidth = front ? 3.3 : 2.4;
@@ -263,18 +237,12 @@ function drawJelly(projectedBalls, connections, gapLimit) {
       const bridge = jellyBridge(a, b, gapLimit);
       if (bridge) shape.addPath(bridge);
     }
-    // Erase every interior stroke using the union of the filled shapes. Only
-    // the shared outer contour remains; no circular seams cross the jelly.
-    contour.clearRect(0, 0, width, height);
-    contour.globalCompositeOperation = 'source-over';
-    contour.strokeStyle = groupColor.outline;
-    contour.lineWidth = Math.max(9.24, group[0].baseRadius * .315);
-    contour.lineJoin = 'round';
-    contour.stroke(shape);
-    contour.globalCompositeOperation = 'destination-out';
-    contour.fill(shape);
-    contour.globalCompositeOperation = 'source-over';
-    ctx.drawImage(contourCanvas, 0, 0, width, height);
+    // Paint the outline first, then cover its interior with the filled union.
+    // This leaves only the outside contour without a full-screen scratch canvas.
+    ctx.strokeStyle = groupColor.outline;
+    ctx.lineWidth = Math.max(9.24, group[0].baseRadius * .315);
+    ctx.lineJoin = 'round';
+    ctx.stroke(shape);
     ctx.fillStyle = groupColor.base;
     ctx.fill(shape);
     ctx.save();
@@ -389,7 +357,6 @@ document.querySelector('#reset-game').addEventListener('click', () => {
   balls = createLevelBalls();
   pulses = balls.map(() => []);
   previousConnections.clear();
-  record = 0;
   if (animationFrame !== null) cancelAnimationFrame(animationFrame);
   animationFrame = null;
   orientation = chooseStartingOrientation();
