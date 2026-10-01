@@ -122,9 +122,10 @@ function project(position, scale) {
 function draw(now = performance.now()) {
   ctx.clearRect(0, 0, width, height);
   const scale = Math.min(width * .36, height * .34, 240);
-  const projectedCorners = corners.map(corner => project(corner, scale));
+  const cubeScale = scale * .85;
+  const projectedCorners = corners.map(corner => project(corner, cubeScale));
   const projectedBalls = balls.map((ball, index) => ({
-    ...project(ball.position, scale), index, colorIndex: ball.colorIndex,
+    ...project(ball.position, cubeScale), index, colorIndex: ball.colorIndex,
     radius: scale * settings.radius, baseRadius: scale * settings.radius,
     active: false,
   }));
@@ -133,8 +134,8 @@ function draw(now = performance.now()) {
 
   // Compare the gap between projected disc edges, in screen pixels. Depth and
   // real-world distance have no part in deciding whether two balls connect.
-  const gapLimit = scale * settings.connectGap;
-  const releaseGapLimit = scale * settings.releaseGap;
+  const gapLimit = cubeScale * settings.connectGap;
+  const releaseGapLimit = cubeScale * settings.releaseGap;
   for (let i = 0; i < projectedBalls.length; i++) for (let j = i + 1; j < projectedBalls.length; j++) {
     const a = projectedBalls[i], b = projectedBalls[j];
     if (a.colorIndex !== b.colorIndex) continue;
