@@ -18,4 +18,4 @@
 
 ## Публикация
 
-GitHub Actions публикует `index.html` и `main.js` в GitHub Pages после каждого push в `main`. Workflow также можно запустить вручную.
+GitHub Pages публикует статичные файлы из корня ветки `main` после каждого push. Файл `.nojekyll` отключает обработку Jekyll; отдельная сборка прототипу не нужна.
